@@ -5,6 +5,13 @@ Pi 4 and Pi 5. A "downstream-light" hybrid: upstream `device/brcm/` (Raspberry
 Vanilla / KonstaKANG) stays pristine, and this directory layers project
 deltas on top via `inherit-product`.
 
+The upstream `device/brcm/` and prebuilt kernel projects come from the
+Raspberry Vanilla local manifest:
+<https://github.com/raspberry-vanilla/android_local_manifest>. Drop that
+manifest's XML into `.repo/local_manifests/` and `repo sync` to populate
+`device/brcm/{rpi4,rpi4-kernel,rpi5,rpi5-kernel}` — `device/gborges/` is
+designed to sit on top of the result without modifying it.
+
 ## Layout
 
 ```
@@ -143,5 +150,9 @@ continues to ship `pinctrl`; that's not modified here.
 
 ## Status
 
-This directory and `external/libgpiod` are not yet in
-`.repo/manifests/default.xml` — they exist on this checkout only.
+This directory and `external/libgpiod` are not yet in any repo manifest —
+they exist on this checkout only. The upstream `device/brcm/` projects
+they depend on are pulled in via the Raspberry Vanilla local manifest
+(<https://github.com/raspberry-vanilla/android_local_manifest>), which is
+also not in `.repo/manifests/default.xml` and must be added under
+`.repo/local_manifests/` before `repo sync`.
