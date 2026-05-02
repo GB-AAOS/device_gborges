@@ -1,0 +1,12 @@
+
+# === gborges additions (appended at boot.img assembly time) ===
+
+# Enable SPI bus 0 (required for MCP2515 attached on SPI0 CE0).
+dtparam=spi=on
+
+# Waveshare RS485 CAN HAT: MCP2515 on SPI0 CE0, INT on GPIO 25, 12 MHz crystal.
+# The crystal value must match the hardware (12 MHz on this HAT) — bit timing
+# is derived from it. Peer nodes on different crystals (e.g. 8 MHz Arduino)
+# interoperate fine as long as the configured bitrate matches.
+# spimaxfrequency=1000000 is conservative; datasheet allows up to 1/2 fosc.
+dtoverlay=mcp2515-can0,oscillator=12000000,interrupt=25,spimaxfrequency=1000000
