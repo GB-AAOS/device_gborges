@@ -1,0 +1,3 @@
+# Nested repo project — managed by the top-level manifest, not by this repo.
+# Without this entry the inner checkout shows up as untracked content here.
+tonal_emulator/
