@@ -7,3 +7,9 @@
 # PRODUCT_PACKAGES += \
 #     libgpiod \
 #     libgpiod_tools
+
+# Enable ADB by default
+PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+    persist.sys.usb.config=adb \
+    ro.adb.secure=0 \
+    ro.debuggable=1
