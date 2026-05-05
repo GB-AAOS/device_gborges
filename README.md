@@ -14,7 +14,10 @@ them. `device/gborges/` sits on top without modifying them.
 The gbrpi4 kernel is gborges-side: `device/gborges/gbrpi4-kernel/` holds
 the prebuilt `Image`, dtbs, vendor modules, and firmware overlays consumed
 by the gbrpi4 boot image and vendor partition. It is built from the kernel
-manifest at `/mnt/build/rpi_kernel`. gbrpi5 consumes `device/brcm/rpi5-kernel`.
+manifest at <https://github.com/GB-AAOS/android_kernel_manifest>; any
+kernel-side change (defconfig deltas, module list, dtb/overlay sources)
+goes there, and the resulting artifacts are restaged into `gbrpi4-kernel/`.
+gbrpi5 consumes `device/brcm/rpi5-kernel`.
 
 ## Layout
 
