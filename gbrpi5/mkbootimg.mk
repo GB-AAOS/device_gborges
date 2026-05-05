@@ -4,7 +4,7 @@
 # BOARD_CUSTOM_BOOTIMG_MK in device/gborges/gbrpi5/BoardConfig.mk.
 
 DEVICE_PATH  := device/brcm/rpi5
-KERNEL_PATH  := device/brcm/rpi5-kernel
+KERNEL_PATH  := device/gborges/gbrpi5-kernel
 GBORGES_PATH := device/gborges/gbrpi5
 
 RPI_BOOT_OUT := $(PRODUCT_OUT)/rpiboot
