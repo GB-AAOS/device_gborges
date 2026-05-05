@@ -3,6 +3,7 @@
 
 # Enable SPI bus 0 (required for MCP2515 attached on SPI0 CE0).
 dtparam=spi=on
+dtoverlay=mcp2515-can0,oscillator=8000000,interrupt=25
 
 # Waveshare RS485 CAN HAT: MCP2515 on SPI0 CE0, INT on GPIO 25, 12 MHz crystal.
 # The crystal value must match the hardware (12 MHz on this HAT) — bit timing

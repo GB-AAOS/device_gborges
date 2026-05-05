@@ -56,8 +56,9 @@ done
 
 VERSION=RaspberryVanillaAOSP16
 DATE=$(date +%Y%m%d)
-IMGNAME=${VERSION}-${DATE}-${TARGET}.img
-ZIPNAME=${IMGNAME%.img}.zip
+IMGDIR=${VERSION}-${DATE}-${TARGET}
+IMGNAME=${IMGDIR}.img
+ZIPNAME=${IMGDIR}.zip
 IMGSIZE=$((${SIZE_GB} * 1024 * 1000 * 1000))
 
 BOOT_PARTITION_SIZE=128
@@ -72,6 +73,10 @@ fi
 
 if [ -f ${ANDROID_BUILD_TOP}/${ZIPNAME} ]; then
   exit_with_error "${ANDROID_BUILD_TOP}/${ZIPNAME} already exists!"
+fi
+
+if [ -e ${ANDROID_PRODUCT_OUT}/${IMGDIR} ]; then
+  exit_with_error "${ANDROID_PRODUCT_OUT}/${IMGDIR} already exists!"
 fi
 
 echo "Creating image file ${ANDROID_PRODUCT_OUT}/${IMGNAME}..."
@@ -151,18 +156,22 @@ sudo chown ${USER}:${USER} ${ANDROID_PRODUCT_OUT}/${IMGNAME}
 ALLOCATED_HUMAN=$(numfmt --to=iec ${IMGSIZE})
 ONDISK_HUMAN=$(du -h ${ANDROID_PRODUCT_OUT}/${IMGNAME} | awk '{print $1}')
 
-echo "Zipping ${IMGNAME} to ${ANDROID_BUILD_TOP}/${ZIPNAME}..."
-(cd ${ANDROID_BUILD_TOP} && zip -j ${ZIPNAME} ${ANDROID_PRODUCT_OUT}/${IMGNAME})
+echo "Staging ${IMGNAME} into ${IMGDIR}/ for archiving..."
+mkdir ${ANDROID_PRODUCT_OUT}/${IMGDIR}
+mv ${ANDROID_PRODUCT_OUT}/${IMGNAME} ${ANDROID_PRODUCT_OUT}/${IMGDIR}/${IMGNAME}
+
+echo "Zipping ${IMGDIR}/ to ${ANDROID_BUILD_TOP}/${ZIPNAME}..."
+(cd ${ANDROID_PRODUCT_OUT} && zip -fz -r ${ANDROID_BUILD_TOP}/${ZIPNAME} ${IMGDIR})
 ZIP_STATUS=$?
 
 if [ ${ZIP_STATUS} -ne 0 ] || [ ! -f ${ANDROID_BUILD_TOP}/${ZIPNAME} ]; then
-  exit_with_error "zip failed; leaving ${ANDROID_PRODUCT_OUT}/${IMGNAME} in place for inspection."
+  exit_with_error "zip failed; leaving ${ANDROID_PRODUCT_OUT}/${IMGDIR}/ in place for inspection."
 fi
 
 ZIP_HUMAN=$(du -h ${ANDROID_BUILD_TOP}/${ZIPNAME} | awk '{print $1}')
 
-echo "Removing ${ANDROID_PRODUCT_OUT}/${IMGNAME}..."
-rm ${ANDROID_PRODUCT_OUT}/${IMGNAME}
+echo "Removing ${ANDROID_PRODUCT_OUT}/${IMGDIR}/..."
+rm -r ${ANDROID_PRODUCT_OUT}/${IMGDIR}
 
 echo ""
 echo "Image size report:"
