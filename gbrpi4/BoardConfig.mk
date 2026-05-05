@@ -14,8 +14,8 @@ BOARD_CUSTOM_BOOTIMG_MK := device/gborges/gbrpi4/mkbootimg.mk
 # kernel modules; we add the ones SocketCAN needs end-to-end. depmod runs
 # at build time and produces modules.dep / modules.alias next to these.
 BOARD_VENDOR_KERNEL_MODULES := \
-    device/brcm/rpi4-kernel/modules/can.ko \
-    device/brcm/rpi4-kernel/modules/can-dev.ko \
-    device/brcm/rpi4-kernel/modules/can-raw.ko \
-    device/brcm/rpi4-kernel/modules/can-bcm.ko \
-    device/brcm/rpi4-kernel/modules/mcp251x.ko
+    device/gborges/gbrpi4-kernel/modules/can.ko \
+    device/gborges/gbrpi4-kernel/modules/can-dev.ko \
+    device/gborges/gbrpi4-kernel/modules/can-raw.ko \
+    device/gborges/gbrpi4-kernel/modules/can-bcm.ko \
+    device/gborges/gbrpi4-kernel/modules/mcp251x.ko

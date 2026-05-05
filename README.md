@@ -5,12 +5,16 @@ Pi 4 and Pi 5. A "downstream-light" hybrid: upstream `device/brcm/` (Raspberry
 Vanilla / KonstaKANG) stays pristine, and this directory layers project
 deltas on top via `inherit-product`.
 
-The upstream `device/brcm/` and prebuilt kernel projects come from the
+The upstream `device/brcm/{rpi4,rpi5,rpi5-kernel}` projects come from the
 Raspberry Vanilla local manifest:
 <https://github.com/raspberry-vanilla/android_local_manifest>. Drop that
 manifest's XML into `.repo/local_manifests/` and `repo sync` to populate
-`device/brcm/{rpi4,rpi4-kernel,rpi5,rpi5-kernel}` — `device/gborges/` is
-designed to sit on top of the result without modifying it.
+them. `device/gborges/` sits on top without modifying them.
+
+The gbrpi4 kernel is gborges-side: `device/gborges/gbrpi4-kernel/` holds
+the prebuilt `Image`, dtbs, vendor modules, and firmware overlays consumed
+by the gbrpi4 boot image and vendor partition. It is built from the kernel
+manifest at `/mnt/build/rpi_kernel`. gbrpi5 consumes `device/brcm/rpi5-kernel`.
 
 ## Layout
 
@@ -29,6 +33,11 @@ device/gborges/
 │   ├── gbrpi4_car.mk       variant: car
 │   ├── mkbootimg.mk        fork of brcm's; appends boot/config.txt.gborges
 │   └── boot/config.txt.gborges
+├── gbrpi4-kernel/          prebuilt kernel artifacts for gbrpi4
+│   ├── Image                   consumed by gbrpi4/mkbootimg.mk (Image,
+│   ├── bcm2711-rpi-*.dtb       dtbs, overlays go into the boot image)
+│   ├── modules/                and BoardConfig.mk's BOARD_VENDOR_KERNEL_MODULES
+│   └── overlays/               (modules go into /vendor/lib/modules/)
 └── gbrpi5/                 mirrors gbrpi4
 ```
 
@@ -133,8 +142,8 @@ How it's wired in the build:
 To change bitrate or add buses, edit `common/canbus_config.pb`. To
 change INT pin, oscillator freq, or SPI max freq, edit
 `gbrpi*/boot/config.txt.gborges`. To add a second MCP2515 (`mcp2515-can1.dtbo`
-already in `*-kernel/overlays/`), append a second `dtoverlay=` line and a
-second `buses:` entry.
+already in `gbrpi4-kernel/overlays/` for gbrpi4, `device/brcm/rpi5-kernel/overlays/`
+for gbrpi5), append a second `dtoverlay=` line and a second `buses:` entry.
 
 **Caveat:** `mkbootimg.mk` is a near-clone of upstream's. If KonstaKANG
 changes their boot-assembly recipe, the gborges fork ships stale boot

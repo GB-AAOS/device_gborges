@@ -4,7 +4,7 @@
 # BOARD_CUSTOM_BOOTIMG_MK in device/gborges/gbrpi4/BoardConfig.mk.
 
 DEVICE_PATH  := device/brcm/rpi4
-KERNEL_PATH  := device/brcm/rpi4-kernel
+KERNEL_PATH  := device/gborges/gbrpi4-kernel
 VENDOR_PATH  := vendor/brcm
 GBORGES_PATH := device/gborges/gbrpi4
 
