@@ -38,10 +38,47 @@ case "${TARGET}" in
 esac
 
 SIZE_GB_DEFAULT=15
-SIZE_GB=${1:-${SIZE_GB_DEFAULT}}
+SIZE_GB=${SIZE_GB_DEFAULT}
+OUTPUT_PATH=""
+FORCE=0
+
+usage() {
+  cat <<EOF
+Usage: $0 [OPTIONS] [SIZE_GB]
+  -o, --output PATH   Final zip path (default: \$ANDROID_BUILD_TOP/<derived>.zip)
+  -f, --force         Overwrite any existing intermediate img, staging dir, or output zip
+  -h, --help          Show this help
+  SIZE_GB             Image size in GB (default: ${SIZE_GB_DEFAULT}, also the minimum)
+EOF
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -o|--output)
+      [ -z "$2" ] && exit_with_error "$1 requires a path argument."
+      OUTPUT_PATH="$2"; shift 2 ;;
+    -f|--force) FORCE=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    --) shift; break ;;
+    -*) exit_with_error "Unknown option: $1 (use -h for help)" ;;
+    *)
+      if [[ "$1" =~ ^[0-9]+$ ]]; then
+        SIZE_GB="$1"; shift
+      else
+        exit_with_error "Unexpected argument: '$1' (use -h for help)"
+      fi ;;
+  esac
+done
 
 if ! [[ "${SIZE_GB}" =~ ^[0-9]+$ ]]; then
   exit_with_error "Invalid size: '${SIZE_GB}'. Pass an integer number of GB (e.g. 32)."
+fi
+
+if [ -n "${OUTPUT_PATH}" ]; then
+  case "${OUTPUT_PATH}" in
+    /*) ;;
+    *)  OUTPUT_PATH="${PWD}/${OUTPUT_PATH}" ;;
+  esac
 fi
 
 if [ ${SIZE_GB} -lt ${SIZE_GB_DEFAULT} ]; then
@@ -57,8 +94,15 @@ done
 VERSION=RaspberryVanillaAOSP16
 DATE=$(date +%Y%m%d)
 IMGDIR=${VERSION}-${DATE}-${TARGET}
+
+if [ -n "${OUTPUT_PATH}" ]; then
+  IMGDIR=$(basename "${OUTPUT_PATH}")
+  IMGDIR=${IMGDIR%.zip}
+fi
+
 IMGNAME=${IMGDIR}.img
 ZIPNAME=${IMGDIR}.zip
+ZIPDEST=${OUTPUT_PATH:-${ANDROID_BUILD_TOP}/${ZIPNAME}}
 IMGSIZE=$((${SIZE_GB} * 1024 * 1000 * 1000))
 
 BOOT_PARTITION_SIZE=128
@@ -67,17 +111,19 @@ VENDOR_PARTITION_SIZE=384
 METADATA_PARTITION_SIZE=16
 EXTENDED_PARTITION_SIZE=$((${SYSTEM_PARTITION_SIZE}+${VENDOR_PARTITION_SIZE}+${METADATA_PARTITION_SIZE}+4))
 
-if [ -f ${ANDROID_PRODUCT_OUT}/${IMGNAME} ]; then
-  exit_with_error "${ANDROID_PRODUCT_OUT}/${IMGNAME} already exists!"
-fi
-
-if [ -f ${ANDROID_BUILD_TOP}/${ZIPNAME} ]; then
-  exit_with_error "${ANDROID_BUILD_TOP}/${ZIPNAME} already exists!"
-fi
-
-if [ -e ${ANDROID_PRODUCT_OUT}/${IMGDIR} ]; then
-  exit_with_error "${ANDROID_PRODUCT_OUT}/${IMGDIR} already exists!"
-fi
+for EXISTING in \
+    "${ANDROID_PRODUCT_OUT}/${IMGNAME}" \
+    "${ANDROID_PRODUCT_OUT}/${IMGDIR}" \
+    "${ZIPDEST}"; do
+  if [ -e "${EXISTING}" ]; then
+    if [ ${FORCE} -eq 1 ]; then
+      echo "Removing existing ${EXISTING} (--force)..."
+      rm -rf "${EXISTING}" || exit_with_error "Failed to remove ${EXISTING}"
+    else
+      exit_with_error "${EXISTING} already exists! (use -f to overwrite)"
+    fi
+  fi
+done
 
 echo "Creating image file ${ANDROID_PRODUCT_OUT}/${IMGNAME}..."
 sudo fallocate -l ${IMGSIZE} ${ANDROID_PRODUCT_OUT}/${IMGNAME}
@@ -160,15 +206,18 @@ echo "Staging ${IMGNAME} into ${IMGDIR}/ for archiving..."
 mkdir ${ANDROID_PRODUCT_OUT}/${IMGDIR}
 mv ${ANDROID_PRODUCT_OUT}/${IMGNAME} ${ANDROID_PRODUCT_OUT}/${IMGDIR}/${IMGNAME}
 
-echo "Zipping ${IMGDIR}/ to ${ANDROID_BUILD_TOP}/${ZIPNAME}..."
-(cd ${ANDROID_PRODUCT_OUT} && zip -fz -r ${ANDROID_BUILD_TOP}/${ZIPNAME} ${IMGDIR})
+ZIPDEST_DIR=$(dirname "${ZIPDEST}")
+mkdir -p "${ZIPDEST_DIR}" || exit_with_error "Cannot create output directory ${ZIPDEST_DIR}"
+
+echo "Zipping ${IMGDIR}/ to ${ZIPDEST}..."
+(cd ${ANDROID_PRODUCT_OUT} && zip -fz -r "${ZIPDEST}" ${IMGDIR})
 ZIP_STATUS=$?
 
-if [ ${ZIP_STATUS} -ne 0 ] || [ ! -f ${ANDROID_BUILD_TOP}/${ZIPNAME} ]; then
+if [ ${ZIP_STATUS} -ne 0 ] || [ ! -f "${ZIPDEST}" ]; then
   exit_with_error "zip failed; leaving ${ANDROID_PRODUCT_OUT}/${IMGDIR}/ in place for inspection."
 fi
 
-ZIP_HUMAN=$(du -h ${ANDROID_BUILD_TOP}/${ZIPNAME} | awk '{print $1}')
+ZIP_HUMAN=$(du -h "${ZIPDEST}" | awk '{print $1}')
 
 echo "Removing ${ANDROID_PRODUCT_OUT}/${IMGDIR}/..."
 rm -r ${ANDROID_PRODUCT_OUT}/${IMGDIR}
@@ -179,5 +228,5 @@ echo "  allocated : ${ALLOCATED_HUMAN}"
 echo "  on disk   : ${ONDISK_HUMAN}"
 echo "  zipped    : ${ZIP_HUMAN}"
 echo ""
-echo "Done, created ${ANDROID_BUILD_TOP}/${ZIPNAME}!"
+echo "Done, created ${ZIPDEST}!"
 exit 0
