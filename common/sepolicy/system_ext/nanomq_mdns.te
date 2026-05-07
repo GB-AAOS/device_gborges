@@ -1,0 +1,9 @@
+# Companion mDNS advertiser for the NanoMQ broker. Runs on /system/bin and
+# connects to the system mdnsd via libmdnssd to register _mqtt._tcp:1883.
+
+type nanomq_mdns, domain, coredomain;
+type nanomq_mdns_exec, exec_type, system_file_type, file_type;
+
+init_daemon_domain(nanomq_mdns)
+
+unix_socket_connect(nanomq_mdns, mdnsd, mdnsd)

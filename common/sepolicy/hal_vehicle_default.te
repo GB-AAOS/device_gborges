@@ -1,0 +1,7 @@
+# hal_neverallows.te bans hal_*_server domains from tcp/udp_socket access
+# unless they're tagged with hal_automotive_socket_exemption.
+typeattribute hal_vehicle_default hal_automotive_socket_exemption;
+
+allow hal_vehicle_default self:tcp_socket create_stream_socket_perms;
+allow hal_vehicle_default node:tcp_socket node_bind;
+allow hal_vehicle_default port:tcp_socket name_connect;

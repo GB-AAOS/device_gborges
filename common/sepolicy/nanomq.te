@@ -1,0 +1,14 @@
+type nanomq, domain;
+type nanomq_exec, exec_type, vendor_file_type, file_type;
+type nanomq_data_file, file_type, data_file_type;
+
+init_daemon_domain(nanomq)
+
+allow nanomq self:capability { net_bind_service };
+allow nanomq self:tcp_socket create_stream_socket_perms;
+allow nanomq self:udp_socket create_socket_perms_no_ioctl;
+allow nanomq node:tcp_socket node_bind;
+allow nanomq port:tcp_socket name_bind;
+
+allow nanomq nanomq_data_file:dir create_dir_perms;
+allow nanomq nanomq_data_file:file create_file_perms;

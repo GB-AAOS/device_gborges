@@ -1,0 +1,3 @@
+/(vendor|system/vendor)/bin/hw/android\.hardware\.automotive\.vehicle@V4-gborges-service     u:object_r:hal_vehicle_default_exec:s0
+/(vendor|system/vendor)/bin/nanomq                                                            u:object_r:nanomq_exec:s0
+/data/vendor/nanomq(/.*)?                                                                     u:object_r:nanomq_data_file:s0

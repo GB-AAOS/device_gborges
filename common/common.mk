@@ -23,4 +23,14 @@ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
 
 # Raspberry Pi utils
 PRODUCT_PACKAGES += \
-    pinctrl 
+    pinctrl
+
+# gborges custom Vehicle HAL
+PRODUCT_PACKAGES += \
+    android.hardware.automotive.vehicle@V4-gborges-service
+
+# NanoMQ MQTT broker 
+PRODUCT_PACKAGES += \
+    nanomq \
+    nanomq.conf \
+    nanomq-mdns-advertise-gborges
