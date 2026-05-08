@@ -1,0 +1,38 @@
+# gborges Wi-Fi seed configuration.
+#
+# Copy this file to wifi.conf (sibling of this one, .gitignored) and edit.
+# At build time, common.mk installs wifi.conf to /system/etc/gborges/wifi.conf
+# IF it exists in the source tree. On first boot the gborges-wifi-seed
+# init service reads it and runs `cmd wifi add-network` for each entry,
+# adding them to the saved-networks list so Android auto-joins whichever
+# is in range.
+#
+# Sourced by /system/bin/gborges-wifi-seed (POSIX sh). Quote values; no
+# command substitution.
+#
+# Format: numbered variables. Networks are read sequentially starting at
+# index 1 — the loop stops at the first missing SSID_N (no gaps).
+#
+# Per-network keys (N = 1, 2, 3, ...):
+#
+#   SSID_N        required, quoted string
+#   PSK_N         required for SECURITY_N=wpa2 / wpa3, quoted string
+#   SECURITY_N    optional: open | wpa2 (default) | wpa3
+#   HIDDEN_N      optional: 0 (default) | 1
+#
+# Examples:
+#
+#   SSID_1="HomeNet"
+#   PSK_1="correct horse battery staple"
+#   SECURITY_1=wpa2
+#
+#   SSID_2="OfficeNet"
+#   PSK_2="hunter2"
+#   SECURITY_2=wpa3
+#
+#   SSID_3="OpenGuestAP"
+#   SECURITY_3=open
+#
+# Reseeding: the script writes /data/local/tmp/.gborges-wifi-seeded as a
+# one-shot marker. Factory-reset wipes /data and re-seeds; otherwise
+# delete the marker and reboot.

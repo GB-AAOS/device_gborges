@@ -1,0 +1,5 @@
+sh_binary {
+    name: "gborges-wifi-seed",
+    src: "gborges-wifi-seed.sh",
+    init_rc: ["gborges-wifi-seed.rc"],
+}

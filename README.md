@@ -165,6 +165,13 @@ on every sync.
 `common/common.mk`, so every gborges build gets it. Upstream brcm
 continues to ship `pinctrl`; that's not modified here.
 
+## Wi-Fi seed
+
+A `gborges-wifi-seed` init service auto-connects to a preconfigured Wi-Fi
+network on first boot, when `/system/etc/gborges/wifi.conf` is present.
+See [`common/wifi-seed/README.md`](common/wifi-seed/README.md) for the
+config format and how to bake in credentials.
+
 ## Status
 
 This directory and `external/libgpiod` are not yet in any repo manifest —

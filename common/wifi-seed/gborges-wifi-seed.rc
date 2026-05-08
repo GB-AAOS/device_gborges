@@ -1,0 +1,9 @@
+service gborges-wifi-seed /system/bin/gborges-wifi-seed
+    user shell
+    group shell wifi inet
+    seclabel u:r:shell:s0
+    oneshot
+    disabled
+
+on property:sys.boot_completed=1
+    start gborges-wifi-seed
