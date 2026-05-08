@@ -23,8 +23,8 @@ if [ -z ${ANDROID_BUILD_TOP} ]; then
   exit_with_error "ANDROID_BUILD_TOP environment variable is not set. Run lunch first."
 fi
 
-if ! command -v zip >/dev/null 2>&1; then
-  exit_with_error "zip is required but not found in PATH"
+if ! command -v xz >/dev/null 2>&1; then
+  exit_with_error "xz is required but not found in PATH"
 fi
 
 TARGET=$(echo ${TARGET_PRODUCT} | sed 's/^aosp_//')
@@ -45,8 +45,8 @@ FORCE=0
 usage() {
   cat <<EOF
 Usage: $0 [OPTIONS] [SIZE_GB]
-  -o, --output PATH   Final zip path (default: \$ANDROID_BUILD_TOP/<derived>.zip)
-  -f, --force         Overwrite any existing intermediate img, staging dir, or output zip
+  -o, --output PATH   Final .img.xz path (default: \$ANDROID_BUILD_TOP/<derived>.img.xz)
+  -f, --force         Overwrite any existing intermediate img or output archive
   -h, --help          Show this help
   SIZE_GB             Image size in GB (default: ${SIZE_GB_DEFAULT}, also the minimum)
 EOF
@@ -97,12 +97,13 @@ IMGDIR=${VERSION}-${DATE}-${TARGET}
 
 if [ -n "${OUTPUT_PATH}" ]; then
   IMGDIR=$(basename "${OUTPUT_PATH}")
-  IMGDIR=${IMGDIR%.zip}
+  IMGDIR=${IMGDIR%.xz}
+  IMGDIR=${IMGDIR%.img}
 fi
 
 IMGNAME=${IMGDIR}.img
-ZIPNAME=${IMGDIR}.zip
-ZIPDEST=${OUTPUT_PATH:-${ANDROID_BUILD_TOP}/${ZIPNAME}}
+XZNAME=${IMGNAME}.xz
+XZDEST=${OUTPUT_PATH:-${ANDROID_BUILD_TOP}/${XZNAME}}
 IMGSIZE=$((${SIZE_GB} * 1024 * 1000 * 1000))
 
 BOOT_PARTITION_SIZE=128
@@ -113,8 +114,7 @@ EXTENDED_PARTITION_SIZE=$((${SYSTEM_PARTITION_SIZE}+${VENDOR_PARTITION_SIZE}+${M
 
 for EXISTING in \
     "${ANDROID_PRODUCT_OUT}/${IMGNAME}" \
-    "${ANDROID_PRODUCT_OUT}/${IMGDIR}" \
-    "${ZIPDEST}"; do
+    "${XZDEST}"; do
   if [ -e "${EXISTING}" ]; then
     if [ ${FORCE} -eq 1 ]; then
       echo "Removing existing ${EXISTING} (--force)..."
@@ -202,31 +202,28 @@ sudo chown ${USER}:${USER} ${ANDROID_PRODUCT_OUT}/${IMGNAME}
 ALLOCATED_HUMAN=$(numfmt --to=iec ${IMGSIZE})
 ONDISK_HUMAN=$(du -h ${ANDROID_PRODUCT_OUT}/${IMGNAME} | awk '{print $1}')
 
-echo "Staging ${IMGNAME} into ${IMGDIR}/ for archiving..."
-mkdir ${ANDROID_PRODUCT_OUT}/${IMGDIR}
-mv ${ANDROID_PRODUCT_OUT}/${IMGNAME} ${ANDROID_PRODUCT_OUT}/${IMGDIR}/${IMGNAME}
+XZDEST_DIR=$(dirname "${XZDEST}")
+mkdir -p "${XZDEST_DIR}" || exit_with_error "Cannot create output directory ${XZDEST_DIR}"
 
-ZIPDEST_DIR=$(dirname "${ZIPDEST}")
-mkdir -p "${ZIPDEST_DIR}" || exit_with_error "Cannot create output directory ${ZIPDEST_DIR}"
+echo "Compressing ${IMGNAME} with xz -T0 -6 to ${XZDEST}..."
+xz -T0 -6 -c "${ANDROID_PRODUCT_OUT}/${IMGNAME}" > "${XZDEST}"
+XZ_STATUS=$?
 
-echo "Zipping ${IMGDIR}/ to ${ZIPDEST}..."
-(cd ${ANDROID_PRODUCT_OUT} && zip -fz -r "${ZIPDEST}" ${IMGDIR})
-ZIP_STATUS=$?
-
-if [ ${ZIP_STATUS} -ne 0 ] || [ ! -f "${ZIPDEST}" ]; then
-  exit_with_error "zip failed; leaving ${ANDROID_PRODUCT_OUT}/${IMGDIR}/ in place for inspection."
+if [ ${XZ_STATUS} -ne 0 ] || [ ! -f "${XZDEST}" ]; then
+  rm -f "${XZDEST}"
+  exit_with_error "xz failed; leaving ${ANDROID_PRODUCT_OUT}/${IMGNAME} in place for inspection."
 fi
 
-ZIP_HUMAN=$(du -h "${ZIPDEST}" | awk '{print $1}')
+XZ_HUMAN=$(du -h "${XZDEST}" | awk '{print $1}')
 
-echo "Removing ${ANDROID_PRODUCT_OUT}/${IMGDIR}/..."
-rm -r ${ANDROID_PRODUCT_OUT}/${IMGDIR}
+echo "Removing ${ANDROID_PRODUCT_OUT}/${IMGNAME}..."
+rm "${ANDROID_PRODUCT_OUT}/${IMGNAME}"
 
 echo ""
 echo "Image size report:"
-echo "  allocated : ${ALLOCATED_HUMAN}"
-echo "  on disk   : ${ONDISK_HUMAN}"
-echo "  zipped    : ${ZIP_HUMAN}"
+echo "  allocated  : ${ALLOCATED_HUMAN}"
+echo "  on disk    : ${ONDISK_HUMAN}"
+echo "  compressed : ${XZ_HUMAN}"
 echo ""
-echo "Done, created ${ZIPDEST}!"
+echo "Done, created ${XZDEST}!"
 exit 0
