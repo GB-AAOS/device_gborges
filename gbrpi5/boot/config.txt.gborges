@@ -1,6 +1,9 @@
 
 # === gborges additions (appended at boot.img assembly time) ===
 
+# Force the USB OTG port to device mode (overrides the upstream CM5 otg default).
+dtoverlay=dwc2,dr_mode=peripheral
+
 # Enable SPI bus 0 (required for MCP2515 attached on SPI0 CE0).
 dtparam=spi=on
 

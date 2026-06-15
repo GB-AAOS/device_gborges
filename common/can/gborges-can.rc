@@ -1,0 +1,14 @@
+# Load the SocketCAN stack + MCP2515 (Waveshare RS485 CAN HAT) at boot.
+#
+# These modules ship via BOARD_VENDOR_KERNEL_MODULES to /vendor/lib/modules
+# but nothing loads them automatically, so without this the mcp251x driver
+# never registers, the DT-described chip is never probed, and can0 never
+# appears. Load in dependency order (can -> can-dev -> mcp251x) at post-fs,
+# which runs after /vendor is mounted and before class_start core (where
+# canhalconfigurator-aidl runs and brings can0 up at the configured bitrate).
+on post-fs
+    insmod /vendor/lib/modules/can.ko
+    insmod /vendor/lib/modules/can-dev.ko
+    insmod /vendor/lib/modules/can-raw.ko
+    insmod /vendor/lib/modules/can-bcm.ko
+    insmod /vendor/lib/modules/mcp251x.ko

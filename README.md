@@ -139,8 +139,10 @@ How it's wired in the build:
 - **Boot:** each board's `BoardConfig.mk` overrides `BOARD_CUSTOM_BOOTIMG_MK`
   to `gbrpi*/mkbootimg.mk`, a fork of the upstream brcm one that
   additionally `cat`s `gbrpi*/boot/config.txt.gborges` onto the assembled
-  `config.txt` before mcopy. The fragment carries `dtparam=spi=on` and the
-  `dtoverlay=mcp2515-can0,oscillator=12000000,interrupt=25,…` line.
+  `config.txt` before mcopy. The fragment carries `dtparam=spi=on`, the
+  `dtoverlay=mcp2515-can0,oscillator=12000000,interrupt=25,…` line, and a
+  `dtoverlay=dwc2,dr_mode=peripheral` line that pins the USB OTG port to
+  device mode (overriding the upstream CM4/CM5 `otg` default).
 - **HAL:** each car product makefile ships `canhalconfigurator-aidl` plus a
   textproto at `/system/etc/canbus_config.pb` (copied from
   `common/canbus_config.pb`). Default config path is hard-coded in

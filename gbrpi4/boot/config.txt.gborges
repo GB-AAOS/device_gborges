@@ -1,13 +1,16 @@
 
 # === gborges additions (appended at boot.img assembly time) ===
 
+# Force the USB OTG port to device mode (overrides the upstream CM4 otg default).
+dtoverlay=dwc2,dr_mode=peripheral
+
 # Enable SPI bus 0 (required for MCP2515 attached on SPI0 CE0).
 dtparam=spi=on
 
-# Waveshare RS485 CAN HAT: MCP2515 on SPI0 CE0, INT on GPIO 25, 8 MHz crystal.
-# The crystal value must match the hardware (8 MHz on this board) — bit timing
+# Waveshare RS485 CAN HAT: MCP2515 on SPI0 CE0, INT on GPIO 25, 12 MHz crystal.
+# The crystal value must match the hardware (12 MHz on this board) — bit timing
 # is derived from it. Peer nodes on different crystals (e.g. 16 MHz Arduino)
 # interoperate fine as long as the configured bitrate matches.
 # spimaxfrequency capped at 2 MHz because SPI is routed through a TXS0108E
 # level shifter, which is unreliable above ~2 MHz.
-dtoverlay=mcp2515-can0,oscillator=8000000,interrupt=25,spimaxfrequency=2000000
+dtoverlay=mcp2515-can0,oscillator=12000000,interrupt=25,spimaxfrequency=2000000

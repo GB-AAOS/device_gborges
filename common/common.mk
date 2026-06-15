@@ -35,6 +35,13 @@ PRODUCT_PACKAGES += \
     nanomq.conf \
     nanomq-mdns-advertise-gborges
 
+# CAN bus: auto-load the SocketCAN + MCP2515 modules at boot. The .ko files
+# are installed via BOARD_VENDOR_KERNEL_MODULES but nothing loads them, so
+# this init .rc insmods them at post-fs (before the CAN HAL configures can0).
+# See device/gborges/README.md (CAN bus section).
+PRODUCT_COPY_FILES += \
+    device/gborges/common/can/gborges-can.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/gborges-can.rc
+
 # Wi-Fi seed (one-shot; reads /system/etc/gborges/wifi.conf if present).
 # See device/gborges/common/wifi-seed/README.md.
 PRODUCT_PACKAGES += gborges-wifi-seed
